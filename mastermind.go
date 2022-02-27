@@ -1,6 +1,25 @@
 package main
 
-import "errors"
+import (
+	"errors"
+	"math/rand"
+	"time"
+)
+
+func GenCode(n int) []int {
+	rand.Seed(time.Now().UnixNano())
+
+	srcNumbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
+	srcCnt := len(srcNumbers)
+
+	dstNrs := make([]int, n)
+
+	for i := range dstNrs {
+		dstNrs[i] = srcNumbers[rand.Intn(srcCnt)]
+	}
+
+	return dstNrs
+}
 
 func ChkAttempt(g []int, c []int) ([]int, error) {
 	size := len(c)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -30,4 +31,11 @@ func RandString(n int) string {
 	}
 
 	return string(dstChars)
+}
+
+func StartOfDayEpoch() int64 {
+	t := time.Now()
+	year, month, day := t.Year(), t.Month(), t.Day()
+	tt, _ := time.Parse(time.RFC3339, fmt.Sprintf("%d-%02d-%02dT00:00:00+00:00", year, month, day))
+	return tt.Unix()
 }

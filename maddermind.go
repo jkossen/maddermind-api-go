@@ -1,17 +1,28 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"log"
 	"net/http"
+	"strings"
 )
+
+type DailyChallenges struct {
+	Date   int64
+	CodeL1 []int
+	CodeL2 []int
+	CodeL3 []int
+}
 
 type Guess struct {
 	Attempt []int
 }
+
+var dc DailyChallenges
 
 func handleTokenRequest(w http.ResponseWriter, r *http.Request) {
 	token := SepEveryNth(RandString(16), 4, "-")
@@ -34,8 +45,30 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// code to break
-	c := []int{1, 6, 4, 1}
+	var c []int
+	curEpoch := StartOfDayEpoch()
+	if dc.Date != curEpoch {
+		fmt.Println("Generating new code")
+		db := OpenDb()
+		var code []int
+		cStr, err := SelectTodaysChallenge(db, 4)
+		switch err {
+		case sql.ErrNoRows:
+			code = GenCode(4)
+			cStr = strings.Trim(strings.Join(strings.Fields(fmt.Sprint(code)), ","), "")
+			CreateTodaysChallenge(db, 4, cStr)
+		default:
+			checkErr(err)
+		}
+
+		err = json.Unmarshal([]byte(cStr), (&c))
+		checkErr(err)
+
+		dc.Date = curEpoch
+		dc.CodeL1 = c
+
+		CloseDb(db)
+	}
 
 	var g Guess
 	err := json.NewDecoder(r.Body).Decode(&g)
@@ -46,7 +79,7 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := ChkAttempt(g.Attempt, c)
+	res, err := ChkAttempt(g.Attempt, dc.CodeL1)
 
 	resp := make(map[string]interface{})
 	resp["attempt"] = g.Attempt
@@ -85,7 +118,7 @@ func main() {
 
 	c := cors.New(cors.Options{
 		AllowedMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowedOrigins:     []string{"http://localhost:3000"},
+		AllowedOrigins:     []string{"http://localhost:3000", "https://madmuon.com"},
 		AllowCredentials:   true,
 		AllowedHeaders:     []string{"Content-Type", "Bearer", "Bearer ", "content-type", "Origin", "Accept"},
 		OptionsPassthrough: true,
@@ -95,6 +128,6 @@ func main() {
 
 	// start serving
 	log.Fatal(http.ListenAndServe(
-		"localhost:8080",
+		"127.0.0.1:12001",
 		handler))
 }
