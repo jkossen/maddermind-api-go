@@ -97,7 +97,7 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 
 	var c []int
 	curEpoch := StartOfDayEpoch()
-	if dcDate != curEpoch {
+	if dcDate != curEpoch || dc[codeLength] == nil {
 		fmt.Println("New day, new dawn. Trying to retrieve today's code")
 		db := OpenDb()
 
