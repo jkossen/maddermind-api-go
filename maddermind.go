@@ -7,8 +7,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"log"
+	"net"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type DailyChallenges struct {
@@ -23,6 +25,36 @@ type Guess struct {
 }
 
 var dc DailyChallenges
+
+func getIP(r *http.Request) (string, error) {
+	//Get IP from the X-REAL-IP header
+	ip := r.Header.Get("X-REAL-IP")
+	netIP := net.ParseIP(ip)
+	if netIP != nil {
+		return ip, nil
+	}
+
+	//Get IP from X-FORWARDED-FOR header
+	ips := r.Header.Get("X-FORWARDED-FOR")
+	splitIps := strings.Split(ips, ",")
+	for _, ip := range splitIps {
+		netIP := net.ParseIP(ip)
+		if netIP != nil {
+			return ip, nil
+		}
+	}
+
+	//Get IP from RemoteAddr
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return "", err
+	}
+	netIP = net.ParseIP(ip)
+	if netIP != nil {
+		return ip, nil
+	}
+	return "", fmt.Errorf("No valid ip found")
+}
 
 func handleTokenRequest(w http.ResponseWriter, r *http.Request) {
 	token := SepEveryNth(RandString(16), 4, "-")
@@ -45,15 +77,19 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ip, err := getIP(r)
+	fmt.Println(time.Now().Local(), ":: Check attempt from ::", ip)
+
 	var c []int
 	curEpoch := StartOfDayEpoch()
 	if dc.Date != curEpoch {
-		fmt.Println("Generating new code")
+		fmt.Println("New day, new dawn. Trying to retrieve today's code")
 		db := OpenDb()
 		var code []int
 		cStr, err := SelectTodaysChallenge(db, 4)
 		switch err {
 		case sql.ErrNoRows:
+			fmt.Println("No code found for today. Generating new code")
 			code = GenCode(4)
 			cStr = strings.Trim(strings.Join(strings.Fields(fmt.Sprint(code)), ","), "")
 			CreateTodaysChallenge(db, 4, cStr)
@@ -71,7 +107,7 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var g Guess
-	err := json.NewDecoder(r.Body).Decode(&g)
+	err = json.NewDecoder(r.Body).Decode(&g)
 
 	if err != nil {
 		fmt.Println("ERROR 1: " + err.Error())
