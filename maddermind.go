@@ -5,26 +5,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
-
-type DailyChallenges struct {
-	Date   int64
-	CodeL1 []int
-	CodeL2 []int
-	CodeL3 []int
-}
 
 type Guess struct {
 	Attempt []int
 }
 
-var dc DailyChallenges
+var dc = make(map[int][]int)
+var dcDate int64
 
 func getIP(r *http.Request) (string, error) {
 	//Get IP from the X-REAL-IP header
@@ -80,32 +76,6 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 	ip, err := getIP(r)
 	fmt.Println(time.Now().Local(), ":: Check attempt from ::", ip)
 
-	var c []int
-	curEpoch := StartOfDayEpoch()
-	if dc.Date != curEpoch {
-		fmt.Println("New day, new dawn. Trying to retrieve today's code")
-		db := OpenDb()
-		var code []int
-		cStr, err := SelectTodaysChallenge(db, 4)
-		switch err {
-		case sql.ErrNoRows:
-			fmt.Println("No code found for today. Generating new code")
-			code = GenCode(4)
-			cStr = strings.Trim(strings.Join(strings.Fields(fmt.Sprint(code)), ","), "")
-			CreateTodaysChallenge(db, 4, cStr)
-		default:
-			checkErr(err)
-		}
-
-		err = json.Unmarshal([]byte(cStr), (&c))
-		checkErr(err)
-
-		dc.Date = curEpoch
-		dc.CodeL1 = c
-
-		CloseDb(db)
-	}
-
 	var g Guess
 	err = json.NewDecoder(r.Body).Decode(&g)
 
@@ -115,17 +85,55 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := ChkAttempt(g.Attempt, dc.CodeL1)
+	codeLength := len(g.Attempt)
+	switch codeLength {
+	case 4:
+	case 6:
+	case 8:
+		break
+	default:
+		http.Error(w, "Code length should be 4, 6 or 8", http.StatusBadRequest)
+	}
 
-	resp := make(map[string]interface{})
-	resp["attempt"] = g.Attempt
-	resp["result"] = res
+	var c []int
+	curEpoch := StartOfDayEpoch()
+	if dcDate != curEpoch {
+		fmt.Println("New day, new dawn. Trying to retrieve today's code")
+		db := OpenDb()
+
+		cStr, err := SelectTodaysChallenge(db, codeLength)
+		var code []int
+
+		switch err {
+		case sql.ErrNoRows:
+			fmt.Println("No code found for today. Generating new code")
+			code = GenCode(codeLength)
+			cStr = strings.Trim(strings.Join(strings.Fields(fmt.Sprint(code)), ","), "")
+			CreateTodaysChallenge(db, codeLength, cStr)
+		default:
+			checkErr(err)
+		}
+
+		err = json.Unmarshal([]byte(cStr), (&c))
+		checkErr(err)
+
+		dcDate = curEpoch
+		dc[codeLength] = c
+
+		CloseDb(db)
+	}
+
+	res, err := ChkAttempt(g.Attempt, dc[codeLength])
 
 	if err != nil {
 		fmt.Println("ERROR 2: " + err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	resp := make(map[string]interface{})
+	resp["attempt"] = g.Attempt
+	resp["result"] = res
 
 	jsonResponse, jsonError := json.Marshal(resp)
 
@@ -145,7 +153,24 @@ func okResponse(w http.ResponseWriter, r []byte) {
 	w.Write(r)
 }
 
+func loadEnv() {
+	env := os.Getenv("MADDERMIND_ENV")
+	if "" == env {
+		env = "development"
+	}
+
+	godotenv.Load(".env." + env + ".local")
+	if "test" != env {
+		godotenv.Load(".env.local")
+	}
+
+	godotenv.Load(".env." + env)
+	godotenv.Load() // The Original .env
+}
+
 func main() {
+	loadEnv()
+
 	r := mux.NewRouter()
 
 	// routing
@@ -164,6 +189,6 @@ func main() {
 
 	// start serving
 	log.Fatal(http.ListenAndServe(
-		"127.0.0.1:12001",
+		os.Getenv("HOST")+":"+os.Getenv("PORT"),
 		handler))
 }
