@@ -48,13 +48,14 @@ func ChkAttempt(g []int, c []int) ([]int, error) {
 			if gVal == cVal && i == j {
 				rightPosses[gVal]++
 				nrRightPosses++
+				// It's the right color in the right pos. It will not get better than this. Break the loop.
 				break
 			} else if gVal == cVal && i != j {
-				// do not count as wrongPos if it's also in the right pos in guess
-				// do not count as wrongPos if it's also in the right pos in code
+				// do not count as wrongPos if it's also in the right pos in guess or code
 				if g[j] != gVal && c[i] != gVal {
 					wrongPosses[gVal]++
 					nrWrongPosses++
+					// only count this wrongpos once, so break the loop
 					break
 				}
 			}
