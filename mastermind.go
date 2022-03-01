@@ -38,21 +38,27 @@ func ChkAttempt(g []int, c []int) ([]int, error) {
 	// collect which guesses were in the wrong position
 	var wrongPosses = make(map[int]int)
 
-	for i, gE := range g {
-		for j, cE := range c {
-			if gE == cE && i == j {
-				rightPosses[gE]++
-			} else if gE == cE && i != j {
+	nrRightPosses := 0
+	nrWrongPosses := 0
+
+	// gVal: value of guess item
+	// cVal: value of code item
+	for i, gVal := range g {
+		for j, cVal := range c {
+			if gVal == cVal && i == j {
+				rightPosses[gVal]++
+				nrRightPosses++
+			} else if gVal == cVal && i != j {
 				// do not count as wrongPos if it's also in the right pos in guess
-				if g[j] != gE {
-					wrongPosses[gE]++
+				// do not count as wrongPos if it's also in the right pos in code
+				// also, only count wrongPosses once
+				if g[j] != gVal && c[i] != gVal && wrongPosses[gVal] == 0 {
+					wrongPosses[gVal]++
+					nrWrongPosses++
 				}
 			}
 		}
 	}
-
-	nrWrongPosses := len(wrongPosses)
-	nrRightPosses := len(rightPosses)
 
 	var i int
 
