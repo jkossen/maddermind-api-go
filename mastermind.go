@@ -48,13 +48,14 @@ func ChkAttempt(g []int, c []int) ([]int, error) {
 			if gVal == cVal && i == j {
 				rightPosses[gVal]++
 				nrRightPosses++
+				break
 			} else if gVal == cVal && i != j {
 				// do not count as wrongPos if it's also in the right pos in guess
 				// do not count as wrongPos if it's also in the right pos in code
-				// also, only count wrongPosses once
-				if g[j] != gVal && c[i] != gVal && wrongPosses[gVal] == 0 {
+				if g[j] != gVal && c[i] != gVal {
 					wrongPosses[gVal]++
 					nrWrongPosses++
+					break
 				}
 			}
 		}
