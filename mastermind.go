@@ -36,7 +36,7 @@ func ChkAttempt(g []int, c []int) ([]int, error) {
 	var rightPosses = make(map[int]int)
 
 	// collect which guesses were in the wrong position
-	var wrongPosses = make(map[int]int)
+	var wrongPosses = make(map[int]bool)
 
 	nrRightPosses := 0
 	nrWrongPosses := 0
@@ -52,8 +52,8 @@ func ChkAttempt(g []int, c []int) ([]int, error) {
 				break
 			} else if gVal == cVal && i != j {
 				// do not count as wrongPos if it's also in the right pos in guess or code
-				if g[j] != gVal && c[i] != gVal {
-					wrongPosses[gVal]++
+				if g[j] != gVal && c[i] != gVal && !wrongPosses[j] {
+					wrongPosses[j] = true
 					nrWrongPosses++
 					// only count this wrongpos once, so break the loop
 					break
