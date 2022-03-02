@@ -23,14 +23,14 @@ var dc = make(map[int][]int)
 var dcDate int64
 
 func getIP(r *http.Request) (string, error) {
-	//Get IP from the X-REAL-IP header
+	// Get IP from the X-REAL-IP header
 	ip := r.Header.Get("X-REAL-IP")
 	netIP := net.ParseIP(ip)
 	if netIP != nil {
 		return ip, nil
 	}
 
-	//Get IP from X-FORWARDED-FOR header
+	// Get IP from X-FORWARDED-FOR header
 	ips := r.Header.Get("X-FORWARDED-FOR")
 	splitIps := strings.Split(ips, ",")
 	for _, ip := range splitIps {
@@ -40,7 +40,7 @@ func getIP(r *http.Request) (string, error) {
 		}
 	}
 
-	//Get IP from RemoteAddr
+	// Get IP from RemoteAddr
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return "", err
@@ -96,7 +96,7 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var c []int
-	curEpoch := StartOfDayEpoch()
+	curEpoch := StartOfDayEpoch(time.Now())
 	if dcDate != curEpoch || dc[codeLength] == nil {
 		fmt.Println("New day, new dawn. Trying to retrieve today's code")
 		db := OpenDb()
@@ -150,7 +150,8 @@ func okResponse(w http.ResponseWriter, r []byte) {
 	w.Header().Set("Content-Type", "application/json")
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(r)
+	_, err := w.Write(r)
+	checkErr(err)
 }
 
 func loadEnv() {
