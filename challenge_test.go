@@ -5,7 +5,32 @@ import (
 	"testing"
 )
 
+func TestGenCode(t *testing.T) {
+	var chal Challenge = challenge{}
+
+	// test a couple of times that we don't get the same chal twice
+	for n := 0; n <= 10; n++ {
+		c1 := chal.Gen(6)
+		c2 := chal.Gen(6)
+
+		if reflect.DeepEqual(c1.Code(), c2.Code()) {
+			t.Fatalf("GenCode(6): generated same chal twice")
+		}
+	}
+
+	// test that we get a chal of the specified length
+	for n := 0; n <= 10; n++ {
+		c := chal.Gen(n)
+		if len(c.Code()) != n {
+			t.Fatalf(`GenCode(%v): outputted length != %v`, n, n)
+		}
+	}
+
+}
+
 func TestChkAttempt(t *testing.T) {
+	var chal Challenge = challenge{}
+
 	var knowngoods = [][][]int{
 		{[]int{0, 0, 0, 0}, []int{0, 0, 0, 0}, []int{2, 2, 2, 2}},
 		{[]int{0, 0, 0, 0}, []int{0, 0, 0, 1}, []int{2, 2, 2, 0}},
@@ -39,7 +64,8 @@ func TestChkAttempt(t *testing.T) {
 		var guess = row[1]
 		var want = row[2]
 
-		res, _ := ChkAttempt(guess, code)
+		chal = chal.WithCode(code)
+		res, _ := chal.Check(guess)
 
 		if !reflect.DeepEqual(res, want) {
 			t.Fatalf(`ChkAttempt(%v, %v): %v != %v`, guess, code, res, want)

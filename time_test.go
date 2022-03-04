@@ -37,5 +37,4 @@ func TestStartOfDayEpoch(t *testing.T) {
 	if res != want {
 		t.Fatalf(`StartOfDayEpoch(%v): %v != %v`, testTime, res, want)
 	}
-
 }
