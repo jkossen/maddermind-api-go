@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,20 +11,21 @@ import (
 
 type Challenge interface {
 	Code() []int
-	RetrieveOrGen(cs ChallengeStorage, timestamp int64, codeLen int) challenge
+	RetrieveOrGen(cs ChallengeStorage, timestamp int64, codeLen int) (challenge, error)
 	Gen(n int) challenge
 	Check(guess []int) ([]int, error)
 	WithCode(code []int) challenge
-	FromJson(cStr string) challenge
+	FromJson(cStr string) (challenge, error)
 	ToString() string
 }
 
 type ChallengeStorage interface {
+	ErrNoChal() error
 	DSN(dsn string)
 	Open() error
 	Close() error
 	Challenge(time int64, len int) (string, error)
-	CreateChallenge(time int64, len int, code string) error
+	Create(time int64, len int, code string) error
 }
 
 type challenge struct {
@@ -36,22 +36,17 @@ func (c challenge) Code() []int {
 	return c.code
 }
 
-func (c challenge) RetrieveOrGen(cs ChallengeStorage, timestamp int64, codeLen int) challenge {
-	fmt.Println("New day, new dawn. Trying to retrieve today's challenge")
-
+func (c challenge) RetrieveOrGen(cs ChallengeStorage, timestamp int64, codeLen int) (challenge, error) {
 	cStr, err := cs.Challenge(timestamp, codeLen)
 
-	switch err {
-	case sql.ErrNoRows:
-		fmt.Println("No challenge found for given timestamp. Generating ...")
+	if cStr == "" || err == cs.ErrNoChal() {
 		c = c.Gen(codeLen)
-		cs.CreateChallenge(timestamp, codeLen, c.ToString())
-	default:
-		c = c.FromJson(cStr)
-		checkErr(err)
+		err = cs.Create(timestamp, codeLen, c.ToString())
+
+		return c, err
 	}
 
-	return c
+	return c.FromJson(cStr)
 }
 
 func (c challenge) Gen(n int) challenge {
@@ -76,9 +71,6 @@ func (c challenge) Check(guess []int) ([]int, error) {
 
 	// array for collecting return values
 	ret := make([]int, size)
-
-	fmt.Println(guess)
-	fmt.Println(c.code)
 
 	// expect nr of items in guess is equal to nr of items in challenge
 	if len(guess) != size {
@@ -135,11 +127,10 @@ func (c challenge) WithCode(code []int) challenge {
 	return c
 }
 
-func (c challenge) FromJson(cStr string) challenge {
+func (c challenge) FromJson(cStr string) (challenge, error) {
 	err := json.Unmarshal([]byte(cStr), (&c.code))
-	checkErr(err)
 
-	return c
+	return c, err
 }
 
 func (c challenge) ToString() string {
