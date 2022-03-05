@@ -95,7 +95,7 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 	curEpoch := StartOfDayEpoch(time.Now())
 	_, hasCode := dc[codeLen]
 	if dcDate != curEpoch || !hasCode {
-		log.Println("http: getting code for", curEpoch, "with codeLen", codeLen)
+		log.Println("http: getting code for timestamp", curEpoch, "with codeLen", codeLen)
 		challenge, err = challenge.RetrieveOrGen(cs, curEpoch, codeLen)
 		dcDate = curEpoch
 		dc[codeLen] = challenge
