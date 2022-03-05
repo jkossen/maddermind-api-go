@@ -20,6 +20,11 @@ var dcDate int64
 func main() {
 	loadEnv()
 
+	// disable date and time for logging, assume eg systemd takes care of those
+	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+
+	log.Println("starting up")
+
 	r := mux.NewRouter()
 
 	// routing

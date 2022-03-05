@@ -3,7 +3,6 @@ package sqlite
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
@@ -65,19 +64,8 @@ func (cs *ChallengeStorage) Close() error {
 func (cs *ChallengeStorage) Challenge(time int64, len int) (string, error) {
 	var code string
 
-	err := cs.Open()
-	defer func(cs *ChallengeStorage) {
-		err := cs.Close()
-		if err != nil {
-			log.Println("challengestorage: Challenge(): cs.Close() failed")
-		}
-	}(cs)
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	row := cs.db.QueryRow(sqlSelectTodaysChallenge, time, len)
-	err = row.Scan(&code)
+	err := row.Scan(&code)
 
 	switch err {
 	case sql.ErrNoRows:

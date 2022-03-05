@@ -92,11 +92,26 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 	var cs = &sqlite.ChallengeStorage{}
 	cs.DSN(os.Getenv("DSN"))
 
+	err = cs.Open()
+	if err != nil {
+		log.Println("http: error opening storage:", err)
+	}
+
+	defer func(cs *sqlite.ChallengeStorage) {
+		err := cs.Close()
+		if err != nil {
+			log.Println("http: error closing storage:", err)
+		}
+	}(cs)
+
 	curEpoch := StartOfDayEpoch(time.Now())
 	_, hasCode := dc[codeLen]
 	if dcDate != curEpoch || !hasCode {
 		log.Println("http: getting code for timestamp", curEpoch, "with codeLen", codeLen)
 		challenge, err = challenge.RetrieveOrGen(cs, curEpoch, codeLen)
+		if err != nil {
+			log.Println("http: error from RetrieveOrGen: ", err)
+		}
 		dcDate = curEpoch
 		dc[codeLen] = challenge
 	}

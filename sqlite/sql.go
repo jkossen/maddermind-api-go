@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS "mmdaily" (
 	PRIMARY KEY("id" AUTOINCREMENT))`
 
 const sqlInsertTodaysChallenge string = `
-INSERT INTO mmdaily (length, date, challenge)
+INSERT INTO mmdaily (length, date, code)
 VALUES (?, ?, ?)
 `
 
