@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func loadEnv() {
@@ -41,7 +42,7 @@ func main() {
 
 	c := cors.New(cors.Options{
 		AllowedMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowedOrigins:     []string{"api://localhost:3000", "https://madmuon.com"},
+		AllowedOrigins:     strings.Fields(os.Getenv("ALLOWED_ORIGINS")),
 		AllowCredentials:   true,
 		AllowedHeaders:     []string{"Content-Type", "Bearer", "Bearer ", "content-type", "Origin", "Accept"},
 		OptionsPassthrough: true,
