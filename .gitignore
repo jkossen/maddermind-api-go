@@ -1,3 +1,6 @@
+.env
+maddermind-backend-go
+maddermind.db
 
 # Created by https://www.toptal.com/developers/gitignore/api/webstorm,goland,macos,linux,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=webstorm,goland,macos,linux,windows
