@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"jkossen/maddermind-backend-go/mastermind"
 	"log"
 	"net/http"
 	"os"
@@ -14,13 +15,13 @@ type Guess struct {
 }
 
 // Daily Challenge, one per codeLength
-var dc = make(map[int]Challenge)
+var dc = make(map[int]mastermind.Challenge)
 var dcDate int64
 
 func main() {
 	loadEnv()
 
-	// disable date and time for logging, assume eg systemd takes care of those
+	// disable date and datetime for logging, assume eg systemd takes care of those
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
 	log.Println("starting up")

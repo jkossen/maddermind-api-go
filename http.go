@@ -3,7 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"jkossen/maddermind-backend-go/datetime"
+	"jkossen/maddermind-backend-go/mastermind"
 	"jkossen/maddermind-backend-go/sqlite"
+	"jkossen/maddermind-backend-go/strutil"
 	"log"
 	"net"
 	"net/http"
@@ -43,7 +46,7 @@ func getIP(r *http.Request) (string, error) {
 }
 
 func handleTokenRequest(w http.ResponseWriter, _ *http.Request) {
-	token := SepEveryNth(RandString(16), 4, "-")
+	token := strutil.SepEveryNth(strutil.RandString(16), 4, "-")
 
 	resp := make(map[string]string)
 	resp["token"] = token
@@ -88,7 +91,7 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var challenge Challenge = challenge{}
+	var challenge = mastermind.Challenge{}
 	var cs = &sqlite.ChallengeStorage{}
 	cs.DSN(os.Getenv("DSN"))
 
@@ -104,11 +107,11 @@ func handleCheckAttemptRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}(cs)
 
-	curEpoch := StartOfDayEpoch(time.Now())
+	curEpoch := datetime.StartOfDayEpoch(time.Now())
 	_, hasCode := dc[codeLen]
 	if dcDate != curEpoch || !hasCode {
 		log.Println("http: getting code for timestamp", curEpoch, "with codeLen", codeLen)
-		challenge, err = challenge.RetrieveOrGen(cs, curEpoch, codeLen)
+		challenge, err = challenge.GetOrCreate(cs, curEpoch, codeLen)
 		if err != nil {
 			log.Println("http: error from RetrieveOrGen: ", err)
 		}

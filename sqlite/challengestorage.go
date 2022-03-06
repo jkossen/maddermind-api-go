@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-var errNoChal = errors.New("challengestorage: no challenge for given time/len")
+var errNoChal = errors.New("challengestorage: no challenge for given datetime/len")
 
 type ChallengeStorage struct {
 	db  *sql.DB

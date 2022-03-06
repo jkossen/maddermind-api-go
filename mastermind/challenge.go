@@ -1,4 +1,5 @@
-package main
+// Package mastermind provides the algorithms and functions for the game Mastermind.
+package mastermind
 
 import (
 	"encoding/json"
@@ -9,7 +10,8 @@ import (
 	"time"
 )
 
-type Challenge interface {
+// challenge is the interface that contains the methods for a Mastermind challenge.
+type challenge interface {
 	Code() []int
 	RetrieveOrGen(cs ChallengeStorage, timestamp int64, codeLen int) (challenge, error)
 	Gen(n int) challenge
@@ -19,6 +21,7 @@ type Challenge interface {
 	ToString() string
 }
 
+// ChallengeStorage is the interface for a storage layer such as a database.
 type ChallengeStorage interface {
 	ErrNoChal() error
 	DSN(dsn string)
@@ -28,20 +31,26 @@ type ChallengeStorage interface {
 	Create(time int64, len int, code string) error
 }
 
-type challenge struct {
+// Challenge is the struct wrapping data needed for a mastermind challenge
+// The main part is the code that the player has to guess
+type Challenge struct {
 	code []int
 }
 
-func (c challenge) Code() []int {
+// Code returns the code that the player has to guess
+func (c Challenge) Code() []int {
 	return c.code
 }
 
-func (c challenge) RetrieveOrGen(cs ChallengeStorage, timestamp int64, codeLen int) (challenge, error) {
+// GetOrCreate tries to retrieve a challenge for the given timestamp and codelength from the ChallengeStorage.
+// If it fails it will generate a new challenge
+// It returns the resulting challenge
+func (c Challenge) GetOrCreate(cs ChallengeStorage, timestamp int64, codeLen int) (Challenge, error) {
 	cStr, err := cs.Challenge(timestamp, codeLen)
 
 	if cStr == "" || err == cs.ErrNoChal() {
 		c = c.Gen(codeLen)
-		err = cs.Create(timestamp, codeLen, c.ToString())
+		err = cs.Create(timestamp, codeLen, c.String())
 
 		return c, err
 	}
@@ -49,7 +58,9 @@ func (c challenge) RetrieveOrGen(cs ChallengeStorage, timestamp int64, codeLen i
 	return c.FromJson(cStr)
 }
 
-func (c challenge) Gen(n int) challenge {
+// Gen generates a new challenge
+// It returns the generated challenge
+func (c Challenge) Gen(n int) Challenge {
 	rand.Seed(time.Now().UnixNano())
 
 	srcNumbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
@@ -66,7 +77,12 @@ func (c challenge) Gen(n int) challenge {
 	return c
 }
 
-func (c challenge) Check(guess []int) ([]int, error) {
+// Check will check whether the given guess contains any correct numbers
+// It will return a slice of ints where:
+// - 2 means 'correct number in the correct position'
+// - 1 means 'correct number in the wrong position'
+// - 0 means 'incorrect number
+func (c Challenge) Check(guess []int) ([]int, error) {
 	size := len(c.code)
 
 	// array for collecting return values
@@ -74,7 +90,7 @@ func (c challenge) Check(guess []int) ([]int, error) {
 
 	// expect nr of items in guess is equal to nr of items in challenge
 	if len(guess) != size {
-		return ret, errors.New("Length of guess and challenge is not equal")
+		return ret, errors.New("length of guess and challenge is not equal")
 	}
 
 	// collect which guesses were in the wrong position
@@ -121,18 +137,24 @@ func (c challenge) Check(guess []int) ([]int, error) {
 	return ret, nil
 }
 
-func (c challenge) WithCode(code []int) challenge {
+// WithCode will instantiate a new Challenge based on the given code
+// It will return the resulting Challenge
+func (c Challenge) WithCode(code []int) Challenge {
 	c.code = code
 
 	return c
 }
 
-func (c challenge) FromJson(cStr string) (challenge, error) {
+// FromJson will instantiate a new Challenge from the given JSON encoded array of ints
+// It will return the resulting Challenge and an error if it could not parse the JSON code
+func (c Challenge) FromJson(cStr string) (Challenge, error) {
 	err := json.Unmarshal([]byte(cStr), (&c.code))
 
 	return c, err
 }
 
-func (c challenge) ToString() string {
+// ToString will convert the code for this Challenge to a string
+// It will return the resulting string
+func (c Challenge) String() string {
 	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(c.code)), ","), "")
 }

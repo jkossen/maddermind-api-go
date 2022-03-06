@@ -1,4 +1,4 @@
-package main
+package mastermind
 
 import (
 	"reflect"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestGenCode(t *testing.T) {
-	var chal Challenge = challenge{}
+	var chal = Challenge{}
 
 	// test a couple of times that we don't get the same chal twice
 	for n := 0; n <= 10; n++ {
@@ -29,7 +29,7 @@ func TestGenCode(t *testing.T) {
 }
 
 func TestChkAttempt(t *testing.T) {
-	var chal Challenge = challenge{}
+	var chal = Challenge{}
 
 	var knowngoods = [][][]int{
 		{[]int{0, 0, 0, 0}, []int{0, 0, 0, 0}, []int{2, 2, 2, 2}},
