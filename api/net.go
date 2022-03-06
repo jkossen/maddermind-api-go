@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// ip returns the ip address of the client doing the given request
 func ip(r *http.Request) (string, error) {
 	// Get IP from the X-REAL-IP header
 	ip := r.Header.Get("X-REAL-IP")
