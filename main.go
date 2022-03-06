@@ -2,21 +2,28 @@ package main
 
 import (
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
-	"jkossen/maddermind-backend-go/mastermind"
+	"jkossen/maddermind-backend-go/api"
 	"log"
 	"net/http"
 	"os"
 )
 
-// Container for the player's guess
-type Guess struct {
-	Attempt []int
-}
+func loadEnv() {
+	env := os.Getenv("MADDERMIND_ENV")
+	if "" == env {
+		env = "development"
+	}
 
-// Daily Challenge, one per codeLength
-var dc = make(map[int]mastermind.Challenge)
-var dcDate int64
+	godotenv.Load(".env." + env + ".local")
+	if "test" != env {
+		godotenv.Load(".env.local")
+	}
+
+	godotenv.Load(".env." + env)
+	godotenv.Load() // The Original .env
+}
 
 func main() {
 	loadEnv()
@@ -29,12 +36,12 @@ func main() {
 	r := mux.NewRouter()
 
 	// routing
-	r.HandleFunc("/chk", handleCheckAttemptRequest).Methods("GET", "POST", "OPTIONS")
-	r.HandleFunc("/new", handleTokenRequest).Methods("GET")
+	r.HandleFunc("/chk", api.Check).Methods("GET", "POST", "OPTIONS")
+	r.HandleFunc("/new", api.Token).Methods("GET")
 
 	c := cors.New(cors.Options{
 		AllowedMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowedOrigins:     []string{"http://localhost:3000", "https://madmuon.com"},
+		AllowedOrigins:     []string{"api://localhost:3000", "https://madmuon.com"},
 		AllowCredentials:   true,
 		AllowedHeaders:     []string{"Content-Type", "Bearer", "Bearer ", "content-type", "Origin", "Accept"},
 		OptionsPassthrough: true,
