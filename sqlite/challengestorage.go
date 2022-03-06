@@ -23,6 +23,8 @@ func (cs *ChallengeStorage) DSN(dsn string) {
 	cs.dsn = dsn
 }
 
+// Open opens the sqlite database and creates the needed tables if they don't exist yet
+// It returns the error if any
 func (cs *ChallengeStorage) Open() error {
 	var err error
 
@@ -57,10 +59,13 @@ func (cs *ChallengeStorage) Open() error {
 	return err
 }
 
+// Close closes the database
 func (cs *ChallengeStorage) Close() error {
 	return cs.db.Close()
 }
 
+// Challenge retrieves the code for the given time and code length
+// It returns the code as a string and an error if any
 func (cs *ChallengeStorage) Challenge(time int64, len int) (string, error) {
 	var code string
 
@@ -77,6 +82,8 @@ func (cs *ChallengeStorage) Challenge(time int64, len int) (string, error) {
 	}
 }
 
+// Create stores the data for a new challenge in the database
+// It returns an error if it occurs
 func (cs *ChallengeStorage) Create(time int64, len int, code string) error {
 	stmt, err := cs.db.Prepare(sqlInsertTodaysChallenge)
 	if err != nil {
@@ -94,6 +101,8 @@ func (cs *ChallengeStorage) Create(time int64, len int, code string) error {
 	return err
 }
 
+// createDb creates the sqlite database file
+// It returns an error if it occurs
 func (cs *ChallengeStorage) createDb(name string) error {
 	file, err := os.OpenFile(name, os.O_RDONLY|os.O_CREATE, 0644)
 
