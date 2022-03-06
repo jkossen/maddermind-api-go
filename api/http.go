@@ -17,7 +17,7 @@ var dc = make(map[int]mastermind.Challenge)
 var dcDate int64
 
 func Token(w http.ResponseWriter, _ *http.Request) {
-	token := strutil.SepEveryNth(strutil.RandString(16), 4, "-")
+	token := strutil.SepEveryNth(strutil.Rand(16), 4, "-")
 
 	resp := make(map[string]string)
 	resp["token"] = token
