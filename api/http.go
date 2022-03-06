@@ -114,7 +114,6 @@ func Check(w http.ResponseWriter, r *http.Request) {
 }
 
 func okResponse(w http.ResponseWriter, r []byte) {
-	w.Header().Set("Access-Control-Allow-Origin", "api://localhost:3000")
 	w.Header().Set("Access-Control-Max-Age", "86400")
 	w.Header().Set("Content-Type", "application/json")
 
