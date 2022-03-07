@@ -44,12 +44,12 @@ func main() {
 
 func loadEnv() {
 	env := os.Getenv("MADDERMIND_ENV")
-	if "" == env {
+	if env == "" {
 		env = "development"
 	}
 
 	godotenv.Load(".env." + env + ".local")
-	if "test" != env {
+	if env != "test" {
 		godotenv.Load(".env.local")
 	}
 
