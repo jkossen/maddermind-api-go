@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
-	"github.com/rs/cors"
 	"jkossen/maddermind-backend-go/api"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -16,8 +17,6 @@ func main() {
 
 	// disable date and datetime for logging, assume eg systemd takes care of those
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
-
-	log.Println("starting up")
 
 	r := mux.NewRouter()
 
@@ -34,6 +33,8 @@ func main() {
 	})
 
 	handler := c.Handler(r)
+
+	log.Printf("listening on %v:%v", os.Getenv("HOST"), os.Getenv("PORT"))
 
 	// start serving
 	log.Fatal(http.ListenAndServe(
