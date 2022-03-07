@@ -16,6 +16,7 @@ import (
 var dc = make(map[int]mastermind.Challenge)
 var dcDate int64
 
+// Token handles the request for a player token
 func Token(w http.ResponseWriter, _ *http.Request) {
 	token := strutil.SepEveryNth(strutil.Rand(16), 4, "-")
 
@@ -32,6 +33,7 @@ func Token(w http.ResponseWriter, _ *http.Request) {
 	okResponse(w, b)
 }
 
+// Check handles the request wherein the client attempts a guess
 func Check(w http.ResponseWriter, r *http.Request) {
 	// just return for preflight call
 	if r.Method != "POST" {
@@ -113,6 +115,7 @@ func Check(w http.ResponseWriter, r *http.Request) {
 	okResponse(w, jsonResp)
 }
 
+// okResponse sends out a standard OK response with default headers
 func okResponse(w http.ResponseWriter, r []byte) {
 	w.Header().Set("Access-Control-Max-Age", "86400")
 	w.Header().Set("Content-Type", "application/json")
