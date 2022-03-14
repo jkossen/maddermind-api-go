@@ -12,6 +12,9 @@ import (
 	"github.com/rs/cors"
 )
 
+// main starts up the server instance for the maddermind http server
+// load the environment, set up routes and corresponding handlers,
+// start listening for requests
 func main() {
 	loadEnv()
 
@@ -42,6 +45,7 @@ func main() {
 		handler))
 }
 
+// loadEnv loads environment variables from .env files
 func loadEnv() {
 	env := os.Getenv("MADDERMIND_ENV")
 	if env == "" {
