@@ -3,9 +3,10 @@ package sqlite
 import (
 	"database/sql"
 	"errors"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var errNoChal = errors.New("challengestorage: no challenge for given datetime/len")

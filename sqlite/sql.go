@@ -10,12 +10,10 @@ CREATE TABLE IF NOT EXISTS "mmdaily" (
 
 const sqlInsertTodaysChallenge string = `
 INSERT INTO mmdaily (length, date, code)
-VALUES (?, ?, ?)
-`
+VALUES (?, ?, ?)`
 
 const sqlSelectTodaysChallenge string = `
 SELECT code FROM mmdaily
 WHERE date = ?
 AND length = ?
-LIMIT 1
-`
+LIMIT 1`
