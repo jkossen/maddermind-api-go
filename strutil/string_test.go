@@ -19,6 +19,9 @@ func TestSepEveryNth(t *testing.T) {
 		testSet{"aaaaaaaaaaa", "a-a-a-a-a-a-a-a-a-a-a", "-", 1},
 		testSet{"aaaaaaaaaaa", "aaa-aaa-aaa-aa", "-", 3},
 		testSet{"-----", "------", "-", 4},
+		testSet{"", "", "-", 1},
+		testSet{"", "", "-", 0},
+		testSet{"aaa", "aaa", "-", 0},
 	}
 
 	for _, row := range sets {

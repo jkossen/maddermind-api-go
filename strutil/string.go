@@ -8,6 +8,10 @@ import (
 // SepEveryNth inserts strutil c after every nth character meant as a separator
 // It returns the resulting strutil
 func SepEveryNth(s string, n int, c string) string {
+	if n < 1 {
+		return s
+	}
+
 	for i := n; i < len(s); i += n + 1 {
 		s = s[:i] + c + s[i:]
 	}
