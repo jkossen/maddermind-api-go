@@ -61,15 +61,14 @@ func (c Challenge) GetOrCreate(cs ChallengeStorage, timestamp int64, codeLen int
 // Gen generates a new challenge
 // It returns the generated challenge
 func (c Challenge) Gen(n int) Challenge {
-	rand.Seed(time.Now().UnixNano())
+	randSrc := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	srcNumbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
 	srcCnt := len(srcNumbers)
 
 	dstNrs := make([]int, n)
-
 	for i := range dstNrs {
-		dstNrs[i] = srcNumbers[rand.Intn(srcCnt)]
+		dstNrs[i] = srcNumbers[randSrc.Intn(srcCnt)]
 	}
 
 	c.code = dstNrs
@@ -79,9 +78,9 @@ func (c Challenge) Gen(n int) Challenge {
 
 // Check will check whether the given guess contains any correct numbers
 // It will return a slice of ints where:
-// - 2 means 'correct number in the correct position'
-// - 1 means 'correct number in the wrong position'
-// - 0 means 'incorrect number
+// - 2 means 'correct number, correct position'
+// - 1 means 'correct number, wrong position'
+// - 0 means 'incorrect number'
 func (c Challenge) Check(guess []int) ([]int, error) {
 	size := len(c.code)
 
@@ -93,7 +92,7 @@ func (c Challenge) Check(guess []int) ([]int, error) {
 		return ret, errors.New("length of guess and challenge is not equal")
 	}
 
-	// collect which guesses were in the wrong position
+	// collect which guesses were in the right position
 	var rightPosses = make(map[int]int)
 
 	// collect which guesses were in the wrong position

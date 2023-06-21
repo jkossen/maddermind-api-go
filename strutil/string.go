@@ -22,7 +22,7 @@ func SepEveryNth(s string, n int, c string) string {
 // Rand generates a random strutil of n characters in length
 // It returns the resulting strutil
 func Rand(n int) string {
-	rand.Seed(time.Now().UnixNano())
+	randSrc := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	srcChars := []rune("abcdefghijklmnopqrstuvwxyz1234567890")
 	srcCnt := len(srcChars)
@@ -30,7 +30,7 @@ func Rand(n int) string {
 	dstChars := make([]rune, n)
 
 	for i := range dstChars {
-		dstChars[i] = srcChars[rand.Intn(srcCnt)]
+		dstChars[i] = srcChars[randSrc.Intn(srcCnt)]
 	}
 
 	return string(dstChars)
